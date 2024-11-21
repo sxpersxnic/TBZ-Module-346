@@ -52,9 +52,9 @@ function rgb() {
   local b=${4}
 
   if [ "${type}" == "F" ]; then
-    echo -e -n "${START}${FG};2;${r};${g};${b}${END}"
+    echo -e "${START}${FG};2;${r};${g};${b}${END}"
   elif [ "${type}" == "B" ]; then 
-    echo -e -n "${START}${BG};2;${r};${g};${b}${END}"
+    echo -e "${START}${BG};2;${r};${g};${b}${END}"
   fi
 }
 
@@ -72,6 +72,17 @@ function hex() {
 # Function to print text with custom color and style
 # Params: text, [color_code], [type (F=Foreground, B=Background)], [style_code1, style_code2, ...]
 function printCustom() {
+  
+  local color=${1:-${DEFAULT_COLOR}}
+  local text="${2}"
+  shift 2
+  local styles=""
+  for style in "$@"; do
+    styles+="${style}"
+  done
+  echo -e ">>> ${color}${styles}${text}${RESET}"
+}
+function printCustomSameLine() {
   
   local color=${1:-${DEFAULT_COLOR}}
   local text="${2}"
@@ -175,17 +186,17 @@ function runCommand() {
 function installPackage() {
   local package=${1}
   printCustom "${PINK_FG}" "Installing: ${package}"
-  runCommand "apt install -y ${package}"
+  runCommand "sudo apt install ${package}"
 }
 
 function restartService() {
   local service=${1}
   printCustom "${PINK_FG}" "Restarting: ${service}"
-  restartService "${service}"
+  runCommand "sudo systemctl restart ${service}"
 }
 
 # Trap to handle cleanup on exit
-trap 'printError' "Script interrupted"; logMessage "ERROR" "Script interrupted"; 'exit 1' INT TERM
+#trap 'printError' "Script interrupted"; logMessage "ERROR" "Script interrupted"; 'exit 1' INT TERM
 
 printCustom "${YELLOW_FG}" "Using YELLOW for input"
 printCustom "${RED_FG}" "Using RED for error"
@@ -194,7 +205,7 @@ printCustom "${ORANGE_FG}" "Using ORANGE for filesystem actions"
 printCustom "${PINK_FG}" "Using PINK for apt & git actions"
 printCustom "${BLUE_FG}" "Using BLUE for information"
 
-printCustom "${YELLOW_FG}" "Set MySQL Password (NOTE: LP CAN SEE PWD): "; read -r -s MySQL_Pwd;
+printCustomSameLine "${YELLOW_FG}" "Set MySQL Password (NOTE: LP CAN SEE PWD): "; read -r -s MySQL_Pwd;
 
 # Install packages
 printCustom "${PINK_FG}" "Updating: apt"
@@ -210,8 +221,8 @@ installPackage "php-mysqli"
 printCustom "${PINK_FG}" "Configuring: MySQL"
 runCommand "mysql -sfu root -e \"GRANT ALL ON *.* TO 'admin'@'%' IDENTIFIED BY ${MySQL_Pwd} WITH GRANT OPTION;\""
 
-restartService "mariadb.service"
-restartService "apache2"
+#restartService "mariadb.service"
+#restartService "apache2"
 
 # Change to home dir
 printCustom "${ORANGE_FG}" "Creating and changing to dir: ~/kn03"
@@ -227,7 +238,7 @@ printCustom "${ORANGE_FG}" "Copying: ./m346scripts/KN03/*.php To: /var/www/html"
 runCommand "cp ./m346scripts/KN03/*.php /var/www/html"
 
 printCustom "${BLUE_FG}" "Manually search Securitygroups and configure rules, so both port 80 and 22 can pass. Make sure to only edit incoming rules NEVER outgoing!" "${BOLD}" "${ITALIC}"
-printCustom "${YELLOW_FG}" "Continue? [Y|n]"; read -r choice
+printCustomSameLine "${YELLOW_FG}" "Continue? [Y|n]"; read -r choice
 
 case ${choice} in
   N|n) exit 1; ;;
@@ -246,7 +257,7 @@ if [ $? -eq 0 ]; then
   logMessage "SUCCESS" "Script executed successfully! ☺"
 else
   printError "An error occured during script execution!"
-  printCustom "${YELLOW_FG}" "Restart? [y|N]: "; read -r restartChoice
+  printCustomSameLine "${YELLOW_FG}" "Restart? [y|N]: "; read -r restartChoice
 
   case ${restartChoice} in
     y|Y)

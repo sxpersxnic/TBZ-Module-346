@@ -82,18 +82,6 @@ function printCustom() {
   done
   echo -e ">>> ${color}${styles}${text}${RESET}"
 }
-function printCustomSameLine() {
-  
-  local color=${1:-${DEFAULT_COLOR}}
-  local text="${2}"
-  shift 2
-  local styles=""
-  for style in "$@"; do
-    styles+="${style}"
-  done
-  echo -e -n ">>> ${color}${styles}${text}${RESET}"
-}
-
 
 # Colors
 YELLOW_FG=$(rgb F 250 255 78)
@@ -195,6 +183,10 @@ function restartService() {
   runCommand "sudo systemctl restart ${service}"
 }
 
+function removeAll() {
+  runCommand "sudo apt remove apache2 php libapache2-mod-php mariadb-server php-mysqli"
+}
+
 # Trap to handle cleanup on exit
 #trap 'printError' "Script interrupted"; logMessage "ERROR" "Script interrupted"; 'exit 1' INT TERM
 
@@ -205,12 +197,13 @@ printCustom "${ORANGE_FG}" "Using ORANGE for filesystem actions"
 printCustom "${PINK_FG}" "Using PINK for apt & git actions"
 printCustom "${BLUE_FG}" "Using BLUE for information"
 
-printCustomSameLine "${YELLOW_FG}" "Set MySQL Password (NOTE: LP CAN SEE PWD): "; read -r -s MySQL_Pwd;
+printCustom "${YELLOW_FG}" "Set MySQL Password (NOTE: LP CAN SEE PWD): "; read -r -s MySQL_Pwd;
 
 # Install packages
 printCustom "${PINK_FG}" "Updating: apt"
-runCommand "apt update"
+runCommand "sudo apt update"
 
+removeAll
 installPackage "apache2"
 installPackage "php"
 installPackage "libapache2-mod-php"
@@ -219,10 +212,10 @@ installPackage "php-mysqli"
 
 # Config
 printCustom "${PINK_FG}" "Configuring: MySQL"
-runCommand "mysql -sfu root -e \"GRANT ALL ON *.* TO 'admin'@'%' IDENTIFIED BY ${MySQL_Pwd} WITH GRANT OPTION;\""
+runCommand "sudo mysql -sfu root -e \"GRANT ALL ON *.* TO 'admin'@'%' IDENTIFIED BY ${MySQL_Pwd} WITH GRANT OPTION;\""
 
-#restartService "mariadb.service"
-#restartService "apache2"
+restartService "mariadb.service"
+restartService "apache2"
 
 # Change to home dir
 printCustom "${ORANGE_FG}" "Creating and changing to dir: ~/kn03"

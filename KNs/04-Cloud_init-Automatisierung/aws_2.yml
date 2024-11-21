@@ -1,0 +1,19 @@
+users:
+  - name: sxnic
+    sudo: ALL=(ALL) NOPASSWD:ALL 
+    groups: user, admin 
+    home: /home/sxnic
+    shell: /bin/bash 
+    ssh_authorized_keys: 
+      ssh-rsa MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAvMISGiv1GnpsSz/YSHUJZTbsFFMhCt8apbz0hFR6Ez70LfH9dDfdyOv18t8JCAbsbbNUsrGIcvxid3yT2aiTPMSCkipzIfSYOOm5i1DJt0XRbhrcPBErDDsUqlqtsSZ0F5HwVJ0DslxNb120Na6p+mbxy3l4aL99qfH/M0Km+rq40qdIGBteBUDzEJBHUtP7ZtzM9fzpv4RW+CFQlZvnkZE0ab9Oe01OPPYLQ8SJiXopRJJubDsvmFkjTLl8Qycu+bc+D13QsRuEL/2Cs2uWVXqs6j8fkgnYdYb31NDd/DziPr36+xLc8446Gx7BHCK4HvuXMDhgiJE0/T62R1y72wIDAQAB aws-key
+
+ssh_pwauth: false  
+disable_root: false
+package_update: true  
+packages:
+  - curl
+  - wget
+  - apache2
+  - php
+  - libapache2-mod-php
+  - php-mysqli

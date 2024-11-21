@@ -53,7 +53,7 @@ function rgb() {
 
   if [ "${type}" == "F" ]; then
     echo -e "${START}${FG};2;${r};${g};${b}${END}"
-  elif [ "${type}" == "B" ]; then 
+  elif [ "${type}" == "B" ]; then
     echo -e "${START}${BG};2;${r};${g};${b}${END}"
   fi
 }
@@ -69,10 +69,13 @@ function hex() {
   rgb "${type}" ${red} ${green} ${blue}
 }
 
+function newLine() {
+ echo " "
+}
+
 # Function to print text with custom color and style
 # Params: text, [color_code], [type (F=Foreground, B=Background)], [style_code1, style_code2, ...]
 function printCustom() {
-  
   local color=${1:-${DEFAULT_COLOR}}
   local text="${2}"
   shift 2
@@ -80,7 +83,21 @@ function printCustom() {
   for style in "$@"; do
     styles+="${style}"
   done
-  echo -e ">>> ${color}${styles}${text}${RESET}"
+    newLine
+    echo -e "${color}${styles}>>> ${text}${RESET}"
+    newLine
+}
+
+function printLn() {
+  local color=${1:-${DEFAULT_COLOR}}
+  local text="${2}"
+  shift 2
+  local styles=""
+  for style in "$@"; do
+    styles+="${style}"
+  done
+    newLine
+    echo -e -n "${color}${styles}>>> ${text}${RESET}"
 }
 
 # Colors
@@ -109,7 +126,6 @@ function logMessage() {
   local log_file;
   local log_dir;
   local color;
-  local mode=0;
 
   case ${level} in
     "ERROR"|"error")
@@ -127,18 +143,11 @@ function logMessage() {
       color=${GREEN_FG}
       log_dir="${HOME}/kn03/log/success"
     ;;
-    "SILENT"|"silent")
-      mode=1
-    ;;
   esac
-  
+
   log_file="${log_dir}/log_$(date +%Y-%m-%d).log"
   mkdir -p "${log_dir}"
-  echo ">>>[$(date +%Y-%m-%d\ %H:%M:%S)] [${level}] ${text}" >> "${log_file}"
-
-  if [ ${mode} -eq 0 ]; then
-    printCustom "${color}" "Logged: ${text} at $(date +%H:%M:%S)"
-  fi
+  echo ">>> [$(date +%Y-%m-%d\ %H:%M:%S)] [${level}] ${text}" >> "${log_file}"
 }
 
 function newError() {
@@ -152,13 +161,13 @@ function runCommand() {
   local count=0
   local success=0
 
-
   while [ ${count} -lt ${retries} ]; do
     eval "${cmd}"
     # shellcheck disable=SC2181
     if [ $? -eq 0 ]; then
       success=1
       logMessage "SUCCESS" "Successfully executed ${cmd}"
+      printCustom "${GREEN_FG}" "Successfully executed ${cmd}"
       break
     else
       count=$((count + 1))
@@ -187,21 +196,13 @@ function removeAll() {
   runCommand "sudo apt remove apache2 php libapache2-mod-php mariadb-server php-mysqli"
 }
 
-# Trap to handle cleanup on exit
-#trap 'printError' "Script interrupted"; logMessage "ERROR" "Script interrupted"; 'exit 1' INT TERM
-
-printCustom "${YELLOW_FG}" "Using YELLOW for input"
-printCustom "${RED_FG}" "Using RED for error"
-printCustom "${GREEN_FG}" "Using GREEN for success"
-printCustom "${ORANGE_FG}" "Using ORANGE for filesystem actions"
-printCustom "${PINK_FG}" "Using PINK for apt & git actions"
-printCustom "${BLUE_FG}" "Using BLUE for information"
-
-printCustom "${YELLOW_FG}" "Set MySQL Password (NOTE: LP CAN SEE PWD): "; read -r -s MySQL_Pwd;
+printLn "${YELLOW_FG}" "Set MySQL Password (NOTE: LP CAN SEE PWD): "; read -r -s MySQL_Pwd;
 
 # Install packages
 printCustom "${PINK_FG}" "Updating: apt"
 runCommand "sudo apt update"
+
+printCustom "${PINK_FG}" "Upgrading: apt"
 runCommand "sudo apt upgrade"
 
 removeAll
@@ -213,28 +214,28 @@ installPackage "php-mysqli"
 
 # Config
 printCustom "${PINK_FG}" "Configuring: MySQL"
-
-runCommand "sudo mysql -sfu root -e \"GRANT ALL ON *.* TO 'admin'@'%' IDENTIFIED BY ${MySQL_Pwd} WITH GRANT OPTION;\""
+runCommand "sudo mysql -sfu root -e \"GRANT ALL ON *.* TO 'admin'@'%' IDENTIFIED BY '${MySQL_Pwd}' WITH GRANT OPTION;\""    
 
 restartService "mariadb.service"
 restartService "apache2"
 
 # Change to home dir
 printCustom "${ORANGE_FG}" "Creating and changing to dir: ~/kn03"
-runCommand "mkdir -p \"${HOME}/kn03\""
 
+runCommand "sudo rm -r ${HOME}/kn03"
+runCommand "mkdir -p ${HOME}/kn03"
 cd "${HOME}/kn03" || { printError "Error: failed to change directory to ${HOME}/kn03"; logMessage "ERROR" "Failed to change directory to ${HOME}/kn03"; exit 1;}
 
 printCustom "${PINK_FG}" "Cloning git repository: ${GITLAB_REPO}"
 runCommand "git clone ${GITLAB_REPO}"
 
 #! There should be something wrong in the ./m346scripts/KN03/ dir
-logMessage "SILENT" "Copying .php files into filesystem of apache webserver"
+logMessage "INFO" "Copying .php files into filesystem of apache webserver"
 printCustom "${ORANGE_FG}" "Copying: ./m346scripts/KN03/*.php To: /var/www/html"
-runCommand "cp ./m346scripts/KN03/*.php /var/www/html"
+runCommand "sudo cp ./m346scripts/KN03/*.php /var/www/html"
 
 printCustom "${BLUE_FG}" "Manually search Securitygroups and configure rules, so both port 80 and 22 can pass. Make sure to only edit incoming rules NEVER outgoing!" "${BOLD}" "${ITALIC}"
-printCustomSameLine "${YELLOW_FG}" "Continue? [Y|n]"; read -r choice
+printLn "${YELLOW_FG}" "Continue? [Y|n]"; read -r choice
 
 case ${choice} in
   N|n) exit 1; ;;
@@ -245,21 +246,22 @@ IPv4=$(hostname -I | awk '{print $1}')
 URL="http://example.com"
 
 printCustom "${PINK_FG}" "Sending Request to IPv4: ${IPv4}"
+runCommand "sudo curl ${IPv4}"
 printCustom "${BLUE_FG}" "Forwarding to URL: ${URL}" "${ITALIC}"
-runCommand "curl -H \"X-Forwarded-For: ${IPv4}\" ${URL}"
+runCommand "sudo curl -H \"X-Forwarded-For: ${IPv4}\" ${URL}"
 
 # shellcheck disable=SC2181
-if [ $? -eq 0 ]; then 
+if [ $? -eq 0 ]; then
   logMessage "SUCCESS" "Script executed successfully! ☺"
 else
   printError "An error occured during script execution!"
-  printCustomSameLine "${YELLOW_FG}" "Restart? [y|N]: "; read -r restartChoice
+  printLn "${YELLOW_FG}" "Restart? [y|N]: "; read -r restartChoice
 
   case ${restartChoice} in
     y|Y)
       printCustom "${ORANGE_FG}" "Restarting..."
       exec "$0"
-    ;; 
+    ;;
 
     *)
       printCustom "${ORANGE_FG}" "See ${HOME}/kn03/log/error for error logs"

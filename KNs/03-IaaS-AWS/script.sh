@@ -86,7 +86,7 @@ function printCustom() {
 # Colors
 YELLOW_FG=$(rgb F 250 255 78)
 RED_FG=$(rgb F 255 0 0)
-GREEN_FG=$(rgb F 78 255 132)
+GREEN_FG=$(rgb B 78 255 132)
 ORANGE_FG=$(rgb F 255 155 78)
 PINK_FG=$(rgb F 238 78 255)
 BLUE_FG=$(rgb F 153 204 255)
@@ -202,6 +202,7 @@ printCustom "${YELLOW_FG}" "Set MySQL Password (NOTE: LP CAN SEE PWD): "; read -
 # Install packages
 printCustom "${PINK_FG}" "Updating: apt"
 runCommand "sudo apt update"
+runCommand "sudo apt upgrade"
 
 removeAll
 installPackage "apache2"
@@ -212,6 +213,7 @@ installPackage "php-mysqli"
 
 # Config
 printCustom "${PINK_FG}" "Configuring: MySQL"
+
 runCommand "sudo mysql -sfu root -e \"GRANT ALL ON *.* TO 'admin'@'%' IDENTIFIED BY ${MySQL_Pwd} WITH GRANT OPTION;\""
 
 restartService "mariadb.service"
@@ -220,6 +222,7 @@ restartService "apache2"
 # Change to home dir
 printCustom "${ORANGE_FG}" "Creating and changing to dir: ~/kn03"
 runCommand "mkdir -p \"${HOME}/kn03\""
+
 cd "${HOME}/kn03" || { printError "Error: failed to change directory to ${HOME}/kn03"; logMessage "ERROR" "Failed to change directory to ${HOME}/kn03"; exit 1;}
 
 printCustom "${PINK_FG}" "Cloning git repository: ${GITLAB_REPO}"

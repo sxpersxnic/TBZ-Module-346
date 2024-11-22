@@ -239,7 +239,7 @@ printLn "${YELLOW_FG}" "Continue? [Y|n]"; read -r choice
 
 case ${choice} in
   N|n) exit 1; ;;
-  *);;
+  *) ;;
 esac
 
 IPv4=$(hostname -I | awk '{print $1}')

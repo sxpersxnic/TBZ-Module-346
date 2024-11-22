@@ -1,20 +1,21 @@
 #cloud-config
 users:
-  - name: ubuntu
-    sudo: ALL=(ALL) NOPASSWD:ALL 
-    groups: user, admin 
-    home: /home/ubuntu
-    shell: /bin/bash 
-    ssh_authorized_keys: ssh-rsa MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA09VlkHactDUJenbk7DHTh21FbEPdJVnFt13q6QJ4Svk5ZDTR6zHhhC/h4CSE5WRcAQU8aXvo/Ci/rOYKas+Ucg8FXk+I4+Hvix1t4x4yQ4n25liPuDSMDfLeNLM/fNDiUMrIGQIbLwT4sxKW2QRCWMUNl6RYMVwE7qiY0vEx+sXCjl63PKX4TEdS6YGoJidq6FZ5HYOfuWYUDiK1K0KHZ1I4gH+q7yCx1p3xEuj5Nhjdaj9lZxXl1CYGGDdeJQEaRHHdmS/WG2cAG96mEWqiP9bFWzCLsYXgY7xp+XJ2SYxozH+LhgQTBmVZPCxn3YvrfOCBWaXKJ7lhfBVuT5KABQIDAQAB aws-key
-ssh_pwauth: false  
-disable_root: false
-package_update: true  
+  - name: ubuntu # Username is ubuntu
+    sudo: ALL=(ALL) NOPASSWD:ALL # No password is required when using sudo
+    groups: user, admin # Is part of user and admin group
+    home: /home/ubuntu # Home dir is /home/ubuntu
+    shell: /bin/bash # Bash is located at /bin/bash
+    ssh_authorized_keys: 
+        # Public key
+      - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQCl1EFHGD1Zt5vaFAbJvIAOYQdxWEssF/xFxBrvNIuZmTPUz+yR05vYvPdxQpJh2HF8eUPiRr3I6W9QCY1cwBiKlWn4fp0fmhz7xa4/GCPqfvIxsgkEhbSDu//XCTwtdv2fO9146tx/3UNxJ4HxKgzuiUH7/9wxnpFjsNZTuP1l1Kn/SBRG8wx4J+O2crVECmHpabZrRSTVwqItWXBGZVhFGesOB7veYWeI9R/BzmwruT7QJ2ABT7C7ksTxpLmYvMmvYtJ2hYOifNG5/HiQMSJP58NL7xly/l5YevxCzPuxdjNcggHvtZZcZgVIqz1qfcjJ2cPgjJCcaqkBA4tVi6EK/q1Ttj+VUY3oa2KuTNAbhl9dIGZ88Ptfs5MAT0uiHW2vkpQ5zK0tVx4nz8MVIAekTnlD+jbPsm/8I4nb1o3Epbik6CfqbUy1/ka04LrL43lnmrmanXfs6L/KAY9iXPY48JF/MgfG2Ypv9IpFi0pPJ90upIBhHLWwOJCsU3Tn55FkKanQRu8H3Mpnozlt4UGDW1w9xmTHc/lPf6BVPslyoWjWMoYRfxFy7nkS2kSyq0bkTE5SBdnLlJnaL51yfNWP1drU/oUxX91HaGvTj5RjcOahKhP8DWqnuqeJmhws9h6kxESjpU1jyhOOvrBdh3ivzRGiqpxW2z7EnxmKkLap7w== sxpersxnic@sxnic
+ssh_pwauth: false # SSh doesn't require password authentication
+disable_root: false # Root is not disabled
+package_update: true # Package update is enabled
 packages:
-  - curl
-  - wget
-  - mariadb-server
+  - curl # Curl package is installed
+  - wget # Wget package is installed
+  - mariadb-server # Mariadb-Server is installed
 runcmd:
- - [ sudo, mysql, -sfu, root, -e, "GRANT ALL ON *.* TO 'admin'@'%' IDENTIFIED BY 'root' WITH GRANT OPTION;" ]
- - [ sudo, sed, -i, 's/127.0.0.1/0.0.0.0/g', /etc/mysql/mariadb.conf.d/50-server.cnf ]
- - [ sudo, systemctl, restart, mariadb-server ]
-  
+ - sudo mysql -sfu root -e "GRANT ALL ON *.* TO 'admin'@'%' IDENTIFIED BY 'root' WITH GRANT OPTION;" # MySQL Password is set for user admin
+ - sudo sed -i 's/127.0.0.1/0.0.0.0/g' /etc/mysql/mariadb.conf.d/50-server.cnf # Configures MySQL to enabke access for any ip
+ - sudo systemctl restart mariadb-server # Restarts mariadb-server to apply configurations

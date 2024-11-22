@@ -5,7 +5,7 @@ users:
     groups: user, admin 
     home: /home/ubutntu
     shell: /bin/bash 
-    ssh_authorized_keys: ssh-key XXXXXXXX aws-key
+    ssh_authorized_keys: ssh-key <Fingerprint> aws-key
 ssh_pwauth: false 
 disable_root: false 
 package_update: true 

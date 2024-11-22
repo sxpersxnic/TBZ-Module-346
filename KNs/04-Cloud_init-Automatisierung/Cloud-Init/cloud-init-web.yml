@@ -1,11 +1,12 @@
 #cloud-config
 users:
-  - name: unbuntu
+  - name: ubuntu
     sudo: ALL=(ALL) NOPASSWD:ALL 
     groups: user, admin 
-    home: /home/ubutntu
+    home: /home/ubuntu
     shell: /bin/bash 
-    ssh_authorized_keys: ssh-rsa MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAvMISGiv1GnpsSz/YSHUJZTbsFFMhCt8apbz0hFR6Ez70LfH9dDfdyOv18t8JCAbsbbNUsrGIcvxid3yT2aiTPMSCkipzIfSYOOm5i1DJt0XRbhrcPBErDDsUqlqtsSZ0F5HwVJ0DslxNb120Na6p+mbxy3l4aL99qfH/M0Km+rq40qdIGBteBUDzEJBHUtP7ZtzM9fzpv4RW+CFQlZvnkZE0ab9Oe01OPPYLQ8SJiXopRJJubDsvmFkjTLl8Qycu+bc+D13QsRuEL/2Cs2uWVXqs6j8fkgnYdYb31NDd/DziPr36+xLc8446Gx7BHCK4HvuXMDhgiJE0/T62R1y72wIDAQAB aws-key
+    ssh_authorized_keys: 
+      - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQDFvxB6AIaJa3UP9YxvwpiDm5bhxDYlzjqLSpQ8eAyu7rPmMOkIc74e5/gu8kPhbtcaX+bfUkEN8XMNoes2O5E9ujsDm4c20HmDN13Hc16qyvQZVULqpTIkp81YxjZAhmmkAYm9gxxHmVMPhCkAjD+ZiRE4dOqK2WsQKT6f8jopP0WLiGdBgyDR1yUMYqF9KmmtaAPKtLZTPzP51nsLsGN+kVe8hQwbACeThcfzZfEah04sTt5s2DYT+BAvamUX050WlRGk5WwvpHp/D46+t7ehnzHbcvbLXwjdtnZ/usVqeI/6Z5p2cfZJR35MAuThbDcIk6kCy//X2Wt3iA6NFQKkuJ1e5+WMHugWEwxC+kBDg0xjUTbOuKdi5g8chti2Wh/QplH6WqJTvI+51UfUXaPV3SfFcBqSmn+bhXDKasiNBRbFvAR557I8rdumlvo9hhme7WBY569PCWc0ixAjLzEAvWGeLGGaPf1SWf7l/R4W/3ju5vnXeGb85nL/GKBLQKaO1m0mBZ5I7REsigwRavNNYk67y/BlIO/2JoTftrAI0SfDnPPqvynfpfdlnyFZ6q7IY5YeGE4ffQoBX3nQFfl9TzRFgbYebxa8LrrcMAil+rpbA/23e/x35fA0YoieuZ1SLQQZjJ3iH/CRJOkhhXnAk35epPa586AdXuVulgCKfQ== sxpersxnic@sxnic
 ssh_pwauth: false  
 disable_root: false
 package_update: true  
@@ -18,6 +19,5 @@ packages:
   - php-mysqli
   - adminer
 runcmd:
-  - [ sudo, a2enconf, adminer ]
-  - [ sudo, systemctl, restart, apache2 ]
-write_file:
+  - sudo a2enconf adminer
+  - sudo systemctl restart apache2
